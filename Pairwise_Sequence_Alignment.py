@@ -1,5 +1,7 @@
 import sys
-
+from GlobalAlignment import global_alignment
+from Semi_Global_Alignment import semi_global_alignment
+from Local_Alignment import local_alignment
 
 def inputValidation(sortedParameters):
     if len(sys.argv) != 11:
@@ -131,7 +133,7 @@ def getMatrix(scoringMatrix,matrix_file):
                         scoringMatrix[row][count] = line[i]
                         count += 1
                 firstLine = False
-                # print(scoringMatrix)
+                #print(scoringMatrix)
 
             else:
                 currRow = line.strip("\n")
@@ -143,9 +145,51 @@ def getMatrix(scoringMatrix,matrix_file):
     return gapScore
 
 
+
+def generate_alignmentMatrix(long_seq, seq_two):
+
+    l_seq_size_padded = len(long_seq) + 2 # the additional 2 is required for 0 and gap char
+    s_seq_size_padded = len(seq_two) + 2
+    alingment_matrix = [0]*s_seq_size_padded
+
+    for col in range(0,s_seq_size_padded):
+        alingment_matrix[col] = [0]*l_seq_size_padded
+    for row in range(0,len(seq_two),1):
+        alingment_matrix[row+2][0] = seq_two[row]
+
+    alingment_matrix[0] = [0,"-"] + list(long_seq)
+    alingment_matrix[1][0] = "-"
+    return alingment_matrix
+
+def perform_alignment(Sequence_0, Sequence_1, ScoringMatrix,alignment_type,gap_score ):
+    if alignment_type == "G" or alignment_type == "S" or alignment_type == "L":
+        longest_sequence = Sequence_0
+        sequnce_two = Sequence_1
+        if len(Sequence_1) > len(Sequence_0):
+            longest_sequence = Sequence_1
+            sequnce_two = Sequence_0
+
+        alingment_matrix = generate_alignmentMatrix(longest_sequence,sequnce_two)
+
+        if alignment_type == "G":
+            print("Global Alignment")
+            global_alignment(longest_sequence, sequnce_two,alingment_matrix,ScoringMatrix,gap_score)
+        """
+        elif alignment_type == "S":
+            print("Semi-Global Alignment")
+            semi_global_alignment(longest_sequence, sequnce_two,alingment_matrix,ScoringMatrix)
+        elif alignment_type == "L":
+            print("Local Alignemnt")
+            local_alignment(longest_sequence, sequnce_two,alingment_matrix,ScoringMatrix)
+        else:
+            print("Alignment type parameter is incorrect")
+            sys.exit()
+            """
+    return "TACO"
+
 def printScoringMatrix(scoringMatrix):
     for row in range(0,len(scoringMatrix),1):
-        print(scoringMatrix[row])
+        print(scoringMatrix[row],"\tlen: ",len(scoringMatrix[row]))
 
 
 def main():
@@ -157,6 +201,7 @@ def main():
         Sequence_1 = sequenceToString(Sequence_1_FName, sortedParameters[2])
         ScoringMatrix = []
         gap_score = getScoringMatrix(sortedParameters[2],ScoringMatrix)
+        info = perform_alignment(Sequence_0, Sequence_1, ScoringMatrix,sortedParameters[3],gap_score )
 
     else:
         print("Parameter Error")
