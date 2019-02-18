@@ -1,9 +1,10 @@
 import sys
 from math import *
 from copy import deepcopy
+
 from GlobalAlignment import global_alignment
 from Semi_Global_Alignment import semi_global_alignment
-from Local_Alignment import local_alignment
+#from Local_Alignment import local_alignment
 
 def inputValidation(sortedParameters):
     if len(sys.argv) != 11:
@@ -164,7 +165,7 @@ def generate_alignmentMatrix(long_seq, seq_two):
 
 
 def generate_alignment_sequences(trace_matrix):
-    aligned_seq = ["",""]
+    aligned_seq = ["", ""]
     seq1 = ""
     seq2 = ""
     negLen = (len(trace_matrix[0])-1)*-1
@@ -175,9 +176,7 @@ def generate_alignment_sequences(trace_matrix):
     for i in range(-1, negLen, -1):
 
         if currChar == "D":
-            #print(trace_matrix[0][currLoc[1]])
-            #print(trace_matrix[currLoc[0]][0])
-            #print("D")
+
             seq1+= str(trace_matrix[0][currLoc[1]])
             seq2+= str(trace_matrix[currLoc[0]][0])
             currLoc[0] -= 1
@@ -185,16 +184,12 @@ def generate_alignment_sequences(trace_matrix):
             currChar = str(trace_matrix[currLoc[0]][currLoc[1]])
 
         elif currChar == "U":
-            #print(trace_matrix[0][currLoc[1]])
-            #print(trace_matrix[currLoc[0]][0])
-            #print("U")
+
             seq1 += "_"
             seq2 += str(trace_matrix[currLoc[0]][0])
             currLoc[0] -= 1
             currChar = str(trace_matrix[currLoc[0]][currLoc[1]])
         else:
-            #print(trace_matrix[0][currLoc[1]])
-            #print("L")
             seq1 += str(trace_matrix[0][currLoc[1]])
             seq2 += "_"
             currLoc[1] -= 1

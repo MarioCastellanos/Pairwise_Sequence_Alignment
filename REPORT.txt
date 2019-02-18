@@ -1,0 +1,43 @@
+Mario Castellanos
+CPS 363 Homework 2
+
+Files submitted:
+dnaseq1.txt
+dnaseq2.txt
+dnaseq3.txt
+dnaseq4.txt
+dnaseq5.txt
+proteinseq1.txt
+proteinseq2.txt
+proteinseq3.txt
+proteinseq4.txt
+proteinseq5.txt
+proteinseq6.txt
+BLOSUM45
+dnaMatrix
+Pairwise_Sequence_Alignment.py
+GlobalAlignment.py
+Semi_Global_Alignment.py
+Local_Alignment.py
+Homework 2 Cover Sheet.pdf
+REPORT.txt
+
+This project contains one main program with many components. The driver file
+is Pairwise_Sequence_Alignment.py it should be able to parse the arguments correctly
+and can identify if there are wrong or missing arguments. The files
+GlobalAlignment.py, Semi_Global_Alignment.py,and Local_Alignment.py contain
+there respective functions.
+
+Description:
+• can perform pairwise sequence alignment of two protein sequences , or two DNA sequences depending on the user's configuration of parameters.
+• can perform global sequence alignment, semi-global sequence alignment, or local sequence alignment depending on the user's configuration.
+• can choose the corresponding scoring matrix (dnaMatrix or BLOSUM45) file depending on if it is a protein sequence alignment or DNA sequence alignment.
+
+Known issues:
+
+- Semi-Global alignemnt functionality is limited for the scoring fucntion need to be updated properly
+
+- Local alignment is non operational and should not be tested it will cause the program to exit.
+
+"SCREENCAPTURES"
+
