@@ -1,4 +1,6 @@
 import sys
+from math import *
+from copy import deepcopy
 from GlobalAlignment import global_alignment
 from Semi_Global_Alignment import semi_global_alignment
 from Local_Alignment import local_alignment
@@ -88,7 +90,7 @@ def sequenceToString(sequence_File_Name,SequenceType):
     else:
         print("Could not read file:", sequence_File_Name)
         sys.exit()
-
+    sequenceFile.close()
     return sequence_String
 
 
@@ -145,7 +147,6 @@ def getMatrix(scoringMatrix,matrix_file):
     return gapScore
 
 
-
 def generate_alignmentMatrix(long_seq, seq_two):
 
     l_seq_size_padded = len(long_seq) + 2 # the additional 2 is required for 0 and gap char
@@ -161,7 +162,83 @@ def generate_alignmentMatrix(long_seq, seq_two):
     alingment_matrix[1][0] = "-"
     return alingment_matrix
 
-def perform_alignment(Sequence_0, Sequence_1, ScoringMatrix,alignment_type,gap_score ):
+
+def generate_alignment_sequences(trace_matrix):
+    aligned_seq = ["",""]
+    seq1 = ""
+    seq2 = ""
+    negLen = (len(trace_matrix[0])-1)*-1
+    currLoc = [-1, -1]
+    trace_matrix[-1][-1] = "D"
+    currChar = trace_matrix[currLoc[0]][currLoc[1]]
+
+    for i in range(-1, negLen, -1):
+
+        if currChar == "D":
+            #print(trace_matrix[0][currLoc[1]])
+            #print(trace_matrix[currLoc[0]][0])
+            #print("D")
+            seq1+= str(trace_matrix[0][currLoc[1]])
+            seq2+= str(trace_matrix[currLoc[0]][0])
+            currLoc[0] -= 1
+            currLoc[1] -= 1
+            currChar = str(trace_matrix[currLoc[0]][currLoc[1]])
+
+        elif currChar == "U":
+            #print(trace_matrix[0][currLoc[1]])
+            #print(trace_matrix[currLoc[0]][0])
+            #print("U")
+            seq1 += "_"
+            seq2 += str(trace_matrix[currLoc[0]][0])
+            currLoc[0] -= 1
+            currChar = str(trace_matrix[currLoc[0]][currLoc[1]])
+        else:
+            #print(trace_matrix[0][currLoc[1]])
+            #print("L")
+            seq1 += str(trace_matrix[0][currLoc[1]])
+            seq2 += "_"
+            currLoc[1] -= 1
+            currChar = str(trace_matrix[currLoc[0]][currLoc[1]])
+
+    aligned_seq[0] = seq1[::-1]
+    aligned_seq[1] = seq2[::-1]
+
+    return aligned_seq
+
+
+def write_to_file(aligned_seqs, max_val,out_file_name):
+    try:
+        sequenceoutfile = open("OutputFiles/" + out_file_name, "w")
+        #writing to file
+        currDisp = 0
+        num_lines = ceil(len(aligned_seqs[0])/60)
+
+        for line in range(0,num_lines,1):
+            try:
+                sequenceoutfile.write("seq1:\t" + str(currDisp + 1)+"\t" + aligned_seqs[0][currDisp:currDisp+60]+"\t"+
+                                      str(len(aligned_seqs[0][currDisp:currDisp+60])+currDisp)+"\n")
+                sequenceoutfile.write("seq2:\t" + str(currDisp + 1)+"\t"+ aligned_seqs[1][currDisp:currDisp+60]+"\t"+
+                                      str(len(aligned_seqs[1][currDisp:currDisp+60])+currDisp)+"\n\n")
+
+                currDisp += 60
+            except IndexError:
+                print("INDEXERROR")
+                sequenceoutfile.write(
+                    "seq1:\t" + str(currDisp + 1) + "\t" + aligned_seqs[0][currDisp:currDisp] + "\t" +
+                    str(len(aligned_seqs[0][currDisp:])+currDisp) + "\n")
+                sequenceoutfile.write(
+                    "seq2:\t" + str(currDisp + 1) + "\t" + aligned_seqs[1][currDisp:currDisp] + "\t" +
+                    str(len(aligned_seqs[1][currDisp:])+currDisp) + "\n\n")
+
+
+    except IOError:
+        print("Could not read file:", )
+        sys.exit()
+    sequenceoutfile.close()
+
+
+
+def perform_alignment(Sequence_0, Sequence_1, ScoringMatrix,alignment_type,gap_score,out_file_name ):
     if alignment_type == "G" or alignment_type == "S" or alignment_type == "L":
         longest_sequence = Sequence_0
         sequnce_two = Sequence_1
@@ -170,23 +247,28 @@ def perform_alignment(Sequence_0, Sequence_1, ScoringMatrix,alignment_type,gap_s
             sequnce_two = Sequence_0
 
         alingment_matrix = generate_alignmentMatrix(longest_sequence,sequnce_two)
-
+        trace_matrix = deepcopy(alingment_matrix)
         if alignment_type == "G":
             print("Global Alignment")
-            global_alignment(longest_sequence, sequnce_two,alingment_matrix,ScoringMatrix,gap_score)
-        """
+
+            global_alignment(alingment_matrix,ScoringMatrix,trace_matrix,gap_score)
+            aligned_seqs = generate_alignment_sequences(trace_matrix)
+            write_to_file(aligned_seqs,ScoringMatrix[-1][-1],out_file_name)
+
         elif alignment_type == "S":
             print("Semi-Global Alignment")
-            semi_global_alignment(longest_sequence, sequnce_two,alingment_matrix,ScoringMatrix)
+            semi_global_alignment(alingment_matrix,ScoringMatrix,trace_matrix,gap_score)
+        """
         elif alignment_type == "L":
             print("Local Alignemnt")
             local_alignment(longest_sequence, sequnce_two,alingment_matrix,ScoringMatrix)
-        else:
-            print("Alignment type parameter is incorrect")
-            sys.exit()
             """
-    return "TACO"
+    else:
+        print("Alignment type parameter is incorrect")
+        sys.exit()
 
+
+#helper method used for debbuging
 def printScoringMatrix(scoringMatrix):
     for row in range(0,len(scoringMatrix),1):
         print(scoringMatrix[row],"\tlen: ",len(scoringMatrix[row]))
@@ -195,13 +277,15 @@ def printScoringMatrix(scoringMatrix):
 def main():
     sortedParameters = [None] * 5
     if inputValidation(sortedParameters):
-        Sequence_0_FName = sortedParameters[0]
-        Sequence_1_FName = sortedParameters[1]
-        Sequence_0 = sequenceToString(Sequence_0_FName, sortedParameters[2])
-        Sequence_1 = sequenceToString(Sequence_1_FName, sortedParameters[2])
         ScoringMatrix = []
-        gap_score = getScoringMatrix(sortedParameters[2],ScoringMatrix)
-        info = perform_alignment(Sequence_0, Sequence_1, ScoringMatrix,sortedParameters[3],gap_score )
+        Sequence_0_FName = sortedParameters[0] #getting filename from parameters
+        Sequence_1_FName = sortedParameters[1]
+
+        Sequence_0 = sequenceToString(Sequence_0_FName, sortedParameters[2]) #converting input file into string of sequence
+        Sequence_1 = sequenceToString(Sequence_1_FName, sortedParameters[2])
+
+        gap_score = getScoringMatrix(sortedParameters[2],ScoringMatrix) # geting the scoring matrix and seting the gap score
+        perform_alignment(Sequence_0, Sequence_1, ScoringMatrix,sortedParameters[3],gap_score,sortedParameters[4]) #performing the alignment
 
     else:
         print("Parameter Error")
